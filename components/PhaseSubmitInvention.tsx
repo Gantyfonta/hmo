@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Game, Player } from '../types';
 import { submitInvention, checkAllInventionsSubmitted } from '../services/firebaseService';
@@ -58,8 +57,12 @@ const PhaseSubmitInvention: React.FC<PhaseSubmitInventionProps> = ({ game, playe
 
   return (
     <div className="w-full max-w-2xl mx-auto bg-slate-800 rounded-lg shadow-2xl p-8 space-y-6">
-      <h2 className="text-3xl font-bold text-center text-white">Come up with a useless invention!</h2>
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-white">Come up with a useless invention!</h2>
+      </div>
+
       <p className="text-center text-slate-400">Think of something completely pointless. The sillier, the better!</p>
+      
       <form onSubmit={handleSubmit} className="space-y-4">
         <textarea
           value={invention}
