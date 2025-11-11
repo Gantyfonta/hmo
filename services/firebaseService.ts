@@ -1,4 +1,3 @@
-
 // NOTE: This app uses Firebase for its backend.
 // You need to create a Firebase project and a Realtime Database.
 // Then, get your Firebase config object and paste it below.
@@ -173,14 +172,14 @@ const startDrawingPhase = async (gameId: string, game: Game) => {
     const shuffledPlayerIds = [...playerIds].sort(() => Math.random() - 0.5);
     const assignments: Record<string, Assignment> = {};
 
-    playerIds.forEach((playerId, index) => {
-        const assignedInventionOwnerIndex = (index + 1) % playerIds.length;
-        const assignedInventionOwnerId = shuffledPlayerIds[assignedInventionOwnerIndex];
-        const originalAuthorId = playerIds.find(id => game.inventions![id] === game.inventions![assignedInventionOwnerId])!;
+    shuffledPlayerIds.forEach((presenterId, index) => {
+        // Assign the invention from the next person in the shuffled list, ensuring no one gets their own
+        const inventionOwnerIndex = (index + 1) % shuffledPlayerIds.length;
+        const inventionOwnerId = shuffledPlayerIds[inventionOwnerIndex];
 
-        assignments[shuffledPlayerIds[index]] = {
-            invention: game.inventions![assignedInventionOwnerId],
-            originalAuthorId: originalAuthorId,
+        assignments[presenterId] = {
+            invention: game.inventions![inventionOwnerId],
+            originalAuthorId: inventionOwnerId,
         };
     });
     
@@ -197,4 +196,46 @@ export const submitDrawingAndPitch = async (gameId: string, playerId: string, dr
     updates[`games/${gameId}/assignments/${playerId}/drawing`] = drawing;
     updates[`games/${gameId}/assignments/${playerId}/pitch`] = pitch;
     await mockUpdate(updates);
+};
+
+export const checkAllDrawingsSubmitted = async (gameId: string) => {
+    const gameSnapshot = await mockGet(`games/${gameId}`);
+    if (gameSnapshot.exists()) {
+        const game: Game = gameSnapshot.val();
+        if (!game.assignments || game.gameState !== GameState.DrawingAndPitching) return;
+
+        const allSubmitted = Object.values(game.assignments).every(a => a.drawing && a.pitch);
+        const playerCount = Object.keys(game.players).length;
+        const assignmentCount = Object.keys(game.assignments).length;
+
+        if (assignmentCount === playerCount && allSubmitted) {
+            await startPresentingPhase(gameId, game);
+        }
+    }
+};
+
+const startPresentingPhase = async (gameId: string, game: Game) => {
+    const playerIds = Object.keys(game.players);
+    const presentationOrder = [...playerIds].sort(() => Math.random() - 0.5);
+
+    const updates: Record<string, any> = {};
+    updates[`games/${gameId}/gameState`] = GameState.Presenting;
+    updates[`games/${gameId}/presentationOrder`] = presentationOrder;
+    updates[`games/${gameId}/currentPresenterIndex`] = 0;
+    updates[`games/${gameId}/roundEndTime`] = null;
+
+    await mockUpdate(updates);
+};
+
+export const advancePresenter = async (gameId: string) => {
+    const gameSnapshot = await mockGet(`games/${gameId}`);
+    if (gameSnapshot.exists()) {
+        const game: Game = gameSnapshot.val();
+        const nextIndex = (game.currentPresenterIndex ?? 0) + 1;
+        await mockSet(`games/${gameId}/currentPresenterIndex`, nextIndex);
+    }
+};
+
+export const endGame = async (gameId: string) => {
+    await mockSet(`games/${gameId}/gameState`, GameState.GameOver);
 };

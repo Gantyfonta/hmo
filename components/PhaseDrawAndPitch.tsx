@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Game, Player, Assignment } from '../types';
-import { submitDrawingAndPitch } from '../services/firebaseService';
+import { submitDrawingAndPitch, checkAllDrawingsSubmitted } from '../services/firebaseService';
 import DrawingCanvas from './DrawingCanvas';
 import Timer from './Timer';
 import Spinner from './Spinner';
@@ -23,15 +23,21 @@ const PhaseDrawAndPitch: React.FC<PhaseDrawAndPitchProps> = ({ game, player }) =
       setIsSubmitted(true);
     }
   }, [assignment]);
+  
+  useEffect(() => {
+    if (game.hostId === player.id && game.assignments) {
+      checkAllDrawingsSubmitted(game.id);
+    }
+  }, [game.assignments, game.id, game.hostId, player.id]);
 
   const handleSubmit = useCallback(async () => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || isSubmitted) return;
     setLoading(true);
     const drawingData = canvasRef.current.getImageData();
     await submitDrawingAndPitch(game.id, player.id, drawingData, pitch);
     setIsSubmitted(true);
     setLoading(false);
-  }, [game.id, player.id, pitch]);
+  }, [game.id, player.id, pitch, isSubmitted]);
   
   if (!assignment) {
     return <div>Error: No assignment found for you.</div>;

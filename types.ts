@@ -1,4 +1,3 @@
-
 import { GameState } from './constants';
 
 export interface Player {
@@ -26,4 +25,6 @@ export interface Game {
   inventions?: Record<string, string>;
   assignments?: Record<string, Assignment>;
   roundEndTime?: number;
+  presentationOrder?: string[];
+  currentPresenterIndex?: number;
 }

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import useGame from '../hooks/useGame';
 import { Player } from '../types';
@@ -6,6 +5,7 @@ import { GameState } from '../constants';
 import PhaseLobby from './PhaseLobby';
 import PhaseSubmitInvention from './PhaseSubmitInvention';
 import PhaseDrawAndPitch from './PhaseDrawAndPitch';
+import PhasePresenting from './PhasePresenting';
 import Spinner from './Spinner';
 
 interface GameRoomProps {
@@ -50,13 +50,14 @@ const GameRoom: React.FC<GameRoomProps> = ({ gameId, player, onLeave }) => {
         return <PhaseSubmitInvention game={game} player={player} />;
       case GameState.DrawingAndPitching:
         return <PhaseDrawAndPitch game={game} player={player} />;
-      // ... other phases would go here
+      case GameState.Presenting:
+        return <PhasePresenting game={game} player={player} onLeave={onLeave} />;
       default:
         return (
-          <div className="text-center">
-            <h2 className="text-2xl font-bold">Game Over!</h2>
-            <p>Thanks for playing!</p>
-            <button onClick={onLeave} className="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md">Play Again</button>
+          <div className="text-center w-full max-w-2xl mx-auto bg-slate-800 rounded-lg shadow-2xl p-8 space-y-6">
+            <h2 className="text-4xl font-bold text-white">Game Over!</h2>
+            <p className="text-slate-300 text-lg">Thanks for playing!</p>
+            <button onClick={onLeave} className="mt-4 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-md text-lg font-semibold">Play Again</button>
           </div>
         )
     }
